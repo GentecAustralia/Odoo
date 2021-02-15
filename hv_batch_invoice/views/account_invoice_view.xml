@@ -37,11 +37,17 @@
         <field name="arch" type="xml">
             <field name="number" position="after">
                 <field name="name" string="Customer Reference"/>
+                <field name="is_approved"/>
+                <field name="approved_by"/>
                 <!-- <field name="x_studio_customer_reference"/> -->
             </field>
             <filter name="draft" position="after">
                 <filter name="on_hold_filter" string="On Hold"
                     domain="[('state','=','on_hold')]"/>
+                <filter name="approved_pending_bills_filter" string="Approval Pending"
+                    domain="[('state','=','open'),('is_approved','=', False)]"/>
+                <filter name="approved_bills_filter" string="Approved"
+                    domain="[('is_approved','=', True)]"/>
             </filter>
         </field>
     </record>
@@ -72,6 +78,10 @@
         	<xpath expr="//button[@name='action_invoice_draft']" position="attributes">
         		<attribute name="states">cancel,on_hold</attribute>
     		</xpath> -->
+            <field name="currency_id" position="after">
+                <field name="is_approved" readonly="1"/>
+                <field name="approved_by" readonly="1"/>
+            </field>
         	<xpath expr="//button[@name='action_invoice_draft']" position="after">
         		<button name="action_invoice_on_hold"
         			states="draft,open"
@@ -81,6 +91,9 @@
                     states="on_hold" string="Un Hold"
                     type="object"
                     groups="account.group_account_invoice"/>
+                <button name="action_bill_approve_by_advisor"
+                    string="Approve" type="object"
+                    attrs="{'invisible': [('is_approved', '=', True)]}"/>
     		</xpath>
             <field name="date_invoice" position="after">
                 <field name="previous_state" invisible="1"/>

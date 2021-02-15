@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """Account Invoice Model."""
 
-from odoo import api, fields, models
+from odoo import api, fields, models, _
+from odoo.exceptions import AccessError
 
 
 class AccountInvoice(models.Model):
@@ -19,6 +20,8 @@ class AccountInvoice(models.Model):
         'ir.attachment', 'res_id',
         domain=[('res_model', '=', 'account.invoice')],
         string='Attachments')
+    is_approved = fields.Boolean(string="Is Approved")
+    approved_by = fields.Many2one("res.users", string="Approved By")
 
     # @api.model
     # def default_get(self, default_fields):
@@ -52,6 +55,18 @@ class AccountInvoice(models.Model):
         for bill in self:
             re_state = bill.previous_state
             bill.write({'state': re_state, 'previous_state': re_state})
+
+    @api.multi
+    def action_bill_approve_by_advisor(self):
+        """Method to approve the bills."""
+        if not self.env.user.has_group('account.group_account_manager'):
+            raise AccessError(_("Only Accoutning 'Advisor' user can"
+                                " Approve Bills !"))
+        for bill in self:
+            bill.write({
+                'is_approved': True,
+                'approved_by': self.env.user.id
+            })
 
     def _search_id(self, query):
         if not query:
